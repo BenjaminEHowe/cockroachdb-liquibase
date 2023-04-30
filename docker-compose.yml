@@ -7,5 +7,18 @@ services:
       - "26257:26256"
       - "8080:8080"
     command: start-single-node --insecure --sql-addr=:26256
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health?ready=1"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
     volumes:
       - "./cockroach-data:/cockroach/cockroach-data"
+  liquibase:
+    image: liquibase/liquibase:4.19.0
+    depends_on:
+      crdb:
+        condition: service_healthy
+    volumes:
+      - ./:/liquibase/changelog/
+    command: --defaults-file=/liquibase/changelog/liquibase.properties --searchPath=/liquibase/changelog update
