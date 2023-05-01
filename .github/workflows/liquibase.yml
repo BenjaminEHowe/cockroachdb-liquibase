@@ -12,3 +12,10 @@ jobs:
         run: docker compose up -d
       - name: Wait until CockroachDB passes healthcheck
         run: until [ $(/usr/bin/docker inspect --format='{{json .State.Health}}' cockroachdb-liquibase-crdb-1 | jq '.Status') == '"healthy"' ]; do :; done
+      - run: docker ps -a
+      - name: "Liquibase update"
+        uses: liquibase-github-actions/update@v4.19.0
+        with:
+          changelogFile: "changelog-main.xml"
+          url: "jdbc:postgresql://cockroachdb-liquibase-crdb-1:26256/defaultdb?sslmode=disable"
+          username: "root"
