@@ -1,21 +1,52 @@
 name: Liquibase example
 on: push
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: benjaminehowe/cockroachdb-single-node
+  VERSION: v22.2.7
+
 jobs:
-  liquibase-update:
+  docker-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Check out repository code
+      - name: Check out repository
         uses: actions/checkout@v3
-      # Using Docker Compose instead of Service Containers due to https://github.com/orgs/community/discussions/52675
-      - name: Run CockroachDB container
-        run: docker compose up -d
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4.0.0
+        with:
+          context: cockroach-single-node
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+  liquibase-update:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    services:
+      crdb:
+        image: ghcr.io/benjaminehowe/cockroachdb-single-node:v22.2.7
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        ports:
+          - "26257:26257"
+          - "8080:8080"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
       - name: Wait until CockroachDB passes healthcheck
-        run: until [ $(/usr/bin/docker inspect --format='{{json .State.Health}}' cockroachdb-liquibase-crdb-1 | jq '.Status') == '"healthy"' ]; do :; done
-      - run: docker ps -a
+        run: until [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health?ready=1) == '200' ]; do :; done
       - name: "Liquibase update"
         uses: liquibase-github-actions/update@v4.19.0
         with:
           changelogFile: "changelog-main.xml"
-          url: "jdbc:postgresql://cockroachdb-liquibase-crdb-1:26256/defaultdb?sslmode=disable"
+          url: "jdbc:postgresql://crdb:26257/defaultdb?sslmode=disable"
           username: "root"
