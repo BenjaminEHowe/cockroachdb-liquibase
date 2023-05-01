@@ -2,7 +2,10 @@
 In this repository we demonstrate integrating CockroachDB and Liquibase with GitHub Actions.
 
 ## To run locally
-`docker compose up`
+
+Just CockroachDB: `docker compose up`
+
+CockroachDB and run Liquibase: `docker compose -f docker-compose.yml -f docker-compose.liquibase.yml up`
 
 # Further Reading
 - https://www.cockroachlabs.com/docs/stable/liquibase.html

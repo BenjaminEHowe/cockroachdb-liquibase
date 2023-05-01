@@ -1,0 +1,11 @@
+version: '3.5'
+
+services:
+  liquibase:
+    image: liquibase/liquibase:4.19.0
+    depends_on:
+      crdb:
+        condition: service_healthy
+    volumes:
+      - ./:/liquibase/changelog/
+    command: --defaults-file=/liquibase/changelog/liquibase.properties --searchPath=/liquibase/changelog update
