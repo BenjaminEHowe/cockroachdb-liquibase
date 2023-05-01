@@ -1,0 +1,14 @@
+name: Liquibase example
+on: push
+
+jobs:
+  liquibase-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      # Using Docker Compose instead of Service Containers due to https://github.com/orgs/community/discussions/52675
+      - name: Run CockroachDB container
+        run: docker compose up -d
+      - name: Wait until CockroachDB passes healthcheck
+        run: until [ $(/usr/bin/docker inspect --format='{{json .State.Health}}' cockroachdb-liquibase-crdb-1 | jq '.Status') == '"healthy"' ]; do :; done
