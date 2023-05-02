@@ -54,6 +54,6 @@ jobs:
         uses: liquibase-github-actions/update@v4.19.0
         with:
           changelogFile: "changelog-main.xml"
-          url: "jdbc:postgresql://beh-dev-7610.8nj.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full&sslrootcert=/github/workspace/cockroachdb-root.crt"
+          url: "jdbc:postgresql://beh-dev-7610.8nj.cockroachlabs.cloud:26257/liquibase?sslmode=verify-full&sslrootcert=/github/workspace/cockroachdb-root.crt"
           username: "liquibase-demo-gha"
           password: ${{ secrets.COCKROACH_DEV_PASSWORD }}
