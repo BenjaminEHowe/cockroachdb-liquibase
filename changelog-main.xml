@@ -9,4 +9,9 @@
         <sqlFile path="sql/0001-create.sql" />
     </changeSet>
 
+    <changeSet id="2" author="ben" runInTransaction="false">
+        <validCheckSum>ANY</validCheckSum>
+        <sqlFile path="sql/0002-account-holder.sql" />
+    </changeSet>
+
 </databaseChangeLog>
